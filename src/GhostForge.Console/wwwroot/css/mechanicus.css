@@ -1,0 +1,184 @@
+/* 机械教风格 CSS - 基于《命运2》和《战锤40K》 */
+
+:root {
+    --mechanicus-dark-brown: #1a0f0a;
+    --mechanicus-secondary-brown: #2a1f1a;
+    --mechanicus-rust-red: #8b2e0b;
+    --mechanicus-brass-gold: #d4af37;
+    --mechanicus-parchment: #e8d4b0;
+    --mechanicus-muted-parchment: #9a8a7a;
+    --mechanicus-dark-bronze: #5a4a3a;
+    --mechanicus-overlay: rgba(26, 15, 10, 0.8);
+}
+
+body {
+    background: var(--mechanicus-dark-brown);
+    color: var(--mechanicus-parchment);
+    font-family: 'Courier New', monospace;
+}
+
+.mechanicus-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 30px;
+}
+
+.mechanicus-header {
+    text-align: center;
+    padding: 40px 20px;
+    background: var(--mechanicus-overlay);
+    border: 3px solid var(--mechanicus-dark-bronze);
+    margin-bottom: 30px;
+}
+
+.mechanicus-header h1 {
+    color: var(--mechanicus-brass-gold);
+    font-size: 2.5rem;
+    text-shadow: 0 0 15px rgba(212, 175, 55, 0.6);
+    margin: 0;
+}
+
+.subtitle {
+    color: var(--mechanicus-muted-parchment);
+    font-size: 1rem;
+    margin-top: 10px;
+}
+
+.generation-panel {
+    background: var(--mechanicus-secondary-brown);
+    border: 2px solid var(--mechanicus-rust-red);
+    padding: 30px;
+}
+
+.input-section {
+    margin-bottom: 30px;
+}
+
+.mechanicus-label {
+    display: block;
+    color: var(--mechanicus-brass-gold);
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.mechanicus-textarea {
+    width: 100%;
+    background: var(--mechanicus-dark-brown);
+    color: var(--mechanicus-parchment);
+    border: 2px solid var(--mechanicus-dark-bronze);
+    padding: 15px;
+    font-family: 'Courier New', monospace;
+    font-size: 1rem;
+    resize: vertical;
+}
+
+.mechanicus-textarea:focus {
+    outline: none;
+    border-color: var(--mechanicus-brass-gold);
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+}
+
+.mechanicus-button {
+    background: var(--mechanicus-rust-red);
+    color: var(--mechanicus-parchment);
+    border: 2px solid var(--mechanicus-brass-gold);
+    padding: 15px 40px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 15px;
+    transition: all 0.3s;
+}
+
+.mechanicus-button:hover:not(:disabled) {
+    background: var(--mechanicus-brass-gold);
+    color: var(--mechanicus-dark-brown);
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.6);
+}
+
+.mechanicus-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.mechanicus-button-secondary {
+    background: var(--mechanicus-dark-bronze);
+    color: var(--mechanicus-parchment);
+    border: 1px solid var(--mechanicus-muted-parchment);
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    margin-right: 10px;
+    transition: all 0.3s;
+}
+
+.mechanicus-button-secondary:hover {
+    background: var(--mechanicus-brass-gold);
+    color: var(--mechanicus-dark-brown);
+}
+
+.result-section {
+    margin-top: 30px;
+    border-top: 2px solid var(--mechanicus-dark-bronze);
+    padding-top: 20px;
+}
+
+.result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.result-header h3 {
+    color: var(--mechanicus-brass-gold);
+    margin: 0;
+}
+
+.status-success {
+    color: #4CAF50;
+    font-weight: bold;
+}
+
+.status-error {
+    color: #f44336;
+    font-weight: bold;
+}
+
+.alert-error {
+    background: rgba(139, 46, 11, 0.3);
+    border: 1px solid var(--mechanicus-rust-red);
+    color: var(--mechanicus-parchment);
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.code-container {
+    background: var(--mechanicus-dark-brown);
+    border: 2px solid var(--mechanicus-dark-bronze);
+    padding: 20px;
+    max-height: 500px;
+    overflow-y: auto;
+    margin-bottom: 15px;
+}
+
+.code-container pre {
+    margin: 0;
+    color: var(--mechanicus-parchment);
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.status-message {
+    margin-top: 20px;
+    padding: 15px;
+    background: var(--mechanicus-overlay);
+    border-left: 4px solid var(--mechanicus-brass-gold);
+    color: var(--mechanicus-parchment);
+}

@@ -1,0 +1,97 @@
+﻿<Window x:Class="GhostForge.WpfClient.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:GhostForge.WpfClient"
+        mc:Ignorable="d"
+        Title="GhostForge - 机械教圣所"
+        Height="500" Width="700"
+        Background="Black"
+        WindowStartupLocation="CenterScreen">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Themes/MechanicusTheme.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Border BorderBrush="{StaticResource BorderMetallicBrush}"
+            BorderThickness="3">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- 标题区域 -->
+            <Border Grid.Row="0"
+                    Background="{StaticResource OverlayBrush}"
+                    Padding="20">
+                <StackPanel>
+                    <TextBlock Text="⚙ GHOSTFORGE ⚙"
+                               Style="{StaticResource MechanicusTitleStyle}"
+                               HorizontalAlignment="Center"
+                               FontSize="32" />
+                    <TextBlock Text="AI-Driven Dynamic UI Forge"
+                               Style="{StaticResource MechanicusTextStyle}"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               HorizontalAlignment="Center"
+                               Margin="0,5,0,0" />
+                </StackPanel>
+            </Border>
+
+            <!-- 主内容区域 -->
+            <Grid Grid.Row="1" Margin="30">
+                <StackPanel VerticalAlignment="Center"
+                            HorizontalAlignment="Center"
+                            Width="500">
+
+                    <TextBlock Text="欢迎，技术祭司"
+                               Style="{StaticResource MechanicusTitleStyle}"
+                               FontSize="20"
+                               Margin="0,0,0,20" />
+
+                    <TextBlock Style="{StaticResource MechanicusTextStyle}"
+                               TextWrapping="Wrap"
+                               Margin="0,0,0,30">
+                        <Run Text="此神圣工坊将自然语言转化为 WPF 界面。" /><LineBreak />
+                        <Run Text="通过奥秘机器之灵（Semantic Kernel），" /><LineBreak />
+                        <Run Text="生成符合机械教美学的 XAML 代码。" /><LineBreak />
+                        <Run Text="点击下方按钮开启" Foreground="{StaticResource HighlightBrush}" />
+                        <Run Text="动态视图锻造流程。" Foreground="{StaticResource HighlightBrush}" />
+                    </TextBlock>
+
+                    <Button Content="⚙ 开启动态UI锻造窗口 ⚙"
+                            Style="{StaticResource MechanicusButtonStyle}"
+                            Click="OpenDynamicView_Click"
+                            HorizontalAlignment="Center"
+                            Padding="30,12"
+                            FontSize="16" />
+
+                    <TextBlock Text="或通过 Blazor 控制台进行操作"
+                               Style="{StaticResource MechanicusTextStyle}"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               HorizontalAlignment="Center"
+                               Margin="0,20,0,0" />
+                </StackPanel>
+            </Grid>
+
+            <!-- 底部信息 -->
+            <Border Grid.Row="2"
+                    Background="{StaticResource OverlayBrush}"
+                    BorderBrush="{StaticResource BorderBrush}"
+                    BorderThickness="0,2,0,0"
+                    Padding="15,10">
+                <TextBlock Text="状态: 机器之灵运行正常 | Blazor Server: http://localhost:5000"
+                           Style="{StaticResource MechanicusTextStyle}"
+                           FontSize="12"
+                           Foreground="{StaticResource TextSecondaryBrush}" />
+            </Border>
+        </Grid>
+    </Border>
+</Window>
+

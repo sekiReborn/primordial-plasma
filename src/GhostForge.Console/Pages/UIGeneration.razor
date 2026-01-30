@@ -1,0 +1,144 @@
+@page "/ui-generation"
+@using GhostForge.Core.Models
+@using GhostForge.Core.Services
+@inject UIService UIService
+
+<PageTitle>UI 生成 - GhostForge</PageTitle>
+
+<div class="mechanicus-container">
+    <div class="mechanicus-header">
+        <h1>⚙ GHOSTFORGE UI GENERATOR ⚙</h1>
+        <p class="subtitle">通过机器之灵将自然语言转化为 XAML</p>
+    </div>
+
+    <div class="generation-panel">
+        <div class="input-section">
+            <label class="mechanicus-label">请描述您需要的界面：</label>
+            <textarea @bind="userDescription" 
+                      class="mechanicus-textarea" 
+                      rows="5" 
+                      placeholder="例如：创建一个数据统计面板，包含三个指标卡片：CPU使用率、内存占用、网络流量"></textarea>
+            
+            <button @onclick="GenerateXamlAsync" 
+                    class="mechanicus-button" 
+                    disabled="@isGenerating">
+                @if (isGenerating)
+                {
+                    <span>⚙ 锻造中...</span>
+                }
+                else
+                {
+                    <span>⚙ 生成 XAML ⚙</span>
+                }
+            </button>
+        </div>
+
+        @if (!string.IsNullOrEmpty(generatedXaml))
+        {
+            <div class="result-section">
+                <div class="result-header">
+                    <h3>生成结果</h3>
+                    @if (isValid)
+                    {
+                        <span class="status-success">✓ 验证通过</span>
+                    }
+                    else
+                    {
+                        <span class="status-error">✗ 验证失败</span>
+                    }
+                </div>
+
+                @if (!string.IsNullOrEmpty(validationError))
+                {
+                    <div class="alert-error">
+                        <strong>错误:</strong> @validationError
+                    </div>
+                }
+
+                <div class="code-container">
+                    <pre><code>@generatedXaml</code></pre>
+                </div>
+
+                <div class="action-buttons">
+                    <button @onclick="CopyToClipboard" class="mechanicus-button-secondary">
+                        📋 复制代码
+                    </button>
+                    <button @onclick="ClearResult" class="mechanicus-button-secondary">
+                        🗑 清除结果
+                    </button>
+                </div>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(statusMessage))
+        {
+            <div class="status-message">
+                @statusMessage
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private string userDescription = "";
+    private string generatedXaml = "";
+    private bool isGenerating = false;
+    private bool isValid = false;
+    private string? validationError = null;
+    private string statusMessage = "";
+
+    private async Task GenerateXamlAsync()
+    {
+        if (string.IsNullOrWhiteSpace(userDescription))
+        {
+            statusMessage = "请输入界面描述";
+            return;
+        }
+
+        isGenerating = true;
+        statusMessage = "正在调用机器之灵...";
+        generatedXaml = "";
+        validationError = null;
+
+        try
+        {
+            var result = await UIService.GenerateXamlAsync(userDescription);
+            
+            generatedXaml = result.XamlCode;
+            isValid = result.IsValid;
+            validationError = result.ValidationError;
+            
+            if (isValid)
+            {
+                statusMessage = "✓ XAML 生成成功！";
+            }
+            else
+            {
+                statusMessage = "⚠ XAML 已生成但验证失败";
+            }
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"生成失败: {ex.Message}";
+            isValid = false;
+        }
+        finally
+        {
+            isGenerating = false;
+        }
+    }
+
+    private async Task CopyToClipboard()
+    {
+        // Note: Clipboard API requires JavaScript interop in Blazor
+        statusMessage = "代码已复制（需要实现 JS Interop）";
+    }
+
+    private void ClearResult()
+    {
+        generatedXaml = "";
+        validationError = null;
+        statusMessage = "";
+        isValid = false;
+    }
+}

@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/GhostForge.Console/GhostForge.Console.csproj" />
+    <Project Path="src/GhostForge.Core/GhostForge.Core.csproj" />
+    <Project Path="src/GhostForge.WpfClient/GhostForge.WpfClient.csproj" />
+  </Folder>
+</Solution>
