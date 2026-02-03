@@ -2,6 +2,7 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
 using GhostForge.Core.Models;
 using System.Xml.Linq;
+using Microsoft.Extensions.Logging;
 
 namespace GhostForge.Core.Services;
 
@@ -12,10 +13,14 @@ public class UIService
 {
     private readonly Kernel _kernel;
     private readonly KernelFunction _xamlGenerationFunction;
+    private readonly ILogger<UIService>? _logger;
 
-    public UIService(Kernel kernel)
+    public UIService(Kernel kernel, ILogger<UIService>? logger = null)
     {
         _kernel = kernel;
+        _logger = logger;
+        
+        _logger?.LogInformation("🔧 UIService 初始化中...");
         
         // 加载 Prompt 模板
         var promptTemplate = LoadPromptTemplate();
@@ -30,6 +35,8 @@ public class UIService
                 TopP = 0.9
             }
         );
+        
+        _logger?.LogInformation("✅ UIService 已就绪");
     }
 
     /// <summary>
@@ -96,6 +103,7 @@ public class UIService
         if (string.IsNullOrWhiteSpace(xaml))
         {
             errorMessage = "XAML 代码为空";
+            _logger?.LogWarning("[VALIDATION] 失败：XAML 为空");
             return false;
         }
         
@@ -105,17 +113,51 @@ public class UIService
             var doc = XDocument.Parse(xaml);
             
             // 检查根元素是否合法（不应该是 Window）
-            if (doc.Root?.Name.LocalName == "Window")
+            var rootName = doc.Root?.Name.LocalName;
+            _logger?.LogInformation("[VALIDATION] 根元素: {RootName}", rootName);
+            
+            if (rootName == "Window")
             {
                 errorMessage = "XAML 不应包含 Window 根元素，应使用容器控件如 Grid 或 StackPanel";
+                _logger?.LogWarning("[VALIDATION] 失败：包含 Window 根元素");
                 return false;
             }
             
+            // 检查是否是有效的 UI 元素
+            var validRootElements = new[] { "Grid", "StackPanel", "DockPanel", "WrapPanel", "Canvas", "Border", "UserControl", "Page" };
+            if (rootName != null && !validRootElements.Contains(rootName) && !rootName.Contains(":"))
+            {
+                // 警告但不阻止：可能是自定义控件
+                _logger?.LogWarning("[VALIDATION] 警告：非标准根元素 '{RootName}'，但继续验证", rootName);
+            }
+            
+            _logger?.LogInformation("✅ [VALIDATION] 成功：XAML 语法有效");
             return true;
         }
         catch (Exception ex)
         {
-            errorMessage = $"XAML 解析错误: {ex.Message}";
+            // 提取更有用的错误信息
+            var message = ex.Message;
+            
+            // 尝试显示位置信息
+            if (ex is System.Xml.XmlException xmlEx)
+            {
+                message = $"第 {xmlEx.LineNumber} 行, 第 {xmlEx.LinePosition} 列: {xmlEx.Message}";
+            }
+            
+            errorMessage = $"XAML 解析错误: {message}";
+            _logger?.LogError("❌ [VALIDATION] 失败：{Message}", message);
+            
+            // 打印问题 XAML 的一部分用于调试
+            if (xaml.Length > 200)
+            {
+                _logger?.LogDebug("[DEBUG] XAML 内容预览:\n{Preview}", xaml.Substring(0, 200));
+            }
+            else
+            {
+                _logger?.LogDebug("[DEBUG] XAML 完整内容:\n{Xaml}", xaml);
+            }
+            
             return false;
         }
     }
@@ -125,11 +167,41 @@ public class UIService
     /// </summary>
     private string CleanXamlOutput(string xaml)
     {
-        // 移除可能的 markdown 代码块
-        xaml = xaml.Replace("```xaml", "").Replace("```xml", "").Replace("```", "");
+        if (string.IsNullOrWhiteSpace(xaml))
+            return string.Empty;
+            
+        // 移除可能的 markdown 代码块（支持多种变体）
+        xaml = xaml.Replace("```xaml", "")
+                   .Replace("```xml", "")
+                   .Replace("```XAML", "")
+                   .Replace("```XML", "")
+                   .Replace("```", "");
+        
+        // 移除可能的 HTML 转义字符
+        xaml = xaml.Replace("&lt;", "<")
+                   .Replace("&gt;", ">")
+                   .Replace("&amp;", "&")
+                   .Replace("&quot;", "\"");
+        
+        // 尝试提取 XML 内容（如果有额外的文本）
+        var firstTagIndex = xaml.IndexOf('<');
+        var lastTagIndex = xaml.LastIndexOf('>');
+        
+        if (firstTagIndex >= 0 && lastTagIndex > firstTagIndex)
+        {
+            xaml = xaml.Substring(firstTagIndex, lastTagIndex - firstTagIndex + 1);
+        }
         
         // 移除前后空白
         xaml = xaml.Trim();
+        
+        // 调试日志（开发时可以看到生成的内容）
+        _logger?.LogInformation("📝 [DEBUG] 清理后的 XAML 长度: {Length} 字符", xaml.Length);
+        if (xaml.Length > 0)
+        {
+            var preview = xaml.Substring(0, Math.Min(100, xaml.Length));
+            _logger?.LogInformation("[DEBUG] XAML 开头: {Preview}...", preview);
+        }
         
         return xaml;
     }

@@ -1,7 +1,9 @@
 @page "/ui-generation"
 @using GhostForge.Core.Models
 @using GhostForge.Core.Services
+@using Microsoft.Extensions.Logging
 @inject UIService UIService
+@inject ILogger<UIGeneration> Logger
 
 <PageTitle>UI 生成 - GhostForge</PageTitle>
 
@@ -89,12 +91,17 @@
 
     private async Task GenerateXamlAsync()
     {
+        Logger.LogInformation("🚀 [UI] 用户点击了生成按钮");
+        
         if (string.IsNullOrWhiteSpace(userDescription))
         {
             statusMessage = "请输入界面描述";
+            Logger.LogWarning("⚠️ [UI] 用户输入为空");
             return;
         }
 
+        Logger.LogInformation("📝 [UI] 用户描述: {Description}", userDescription);
+        
         isGenerating = true;
         statusMessage = "正在调用机器之灵...";
         generatedXaml = "";
@@ -102,29 +109,37 @@
 
         try
         {
+            Logger.LogInformation("🔄 [UI] 开始调用 UIService.GenerateXamlAsync...");
             var result = await UIService.GenerateXamlAsync(userDescription);
+            Logger.LogInformation("✅ [UI] UIService 调用完成");
             
             generatedXaml = result.XamlCode;
             isValid = result.IsValid;
             validationError = result.ValidationError;
             
+            Logger.LogInformation("📊 [UI] 生成结果 - 有效: {IsValid}, XAML长度: {Length}", isValid, generatedXaml?.Length ?? 0);
+            
             if (isValid)
             {
                 statusMessage = "✓ XAML 生成成功！";
+                Logger.LogInformation("🎉 [UI] XAML 验证通过");
             }
             else
             {
                 statusMessage = "⚠ XAML 已生成但验证失败";
+                Logger.LogWarning("⚠️ [UI] XAML 验证失败: {Error}", validationError);
             }
         }
         catch (Exception ex)
         {
             statusMessage = $"生成失败: {ex.Message}";
+            Logger.LogError(ex, "❌ [UI] 生成过程出现异常");
             isValid = false;
         }
         finally
         {
             isGenerating = false;
+            Logger.LogInformation("🏁 [UI] 生成流程结束");
         }
     }
 

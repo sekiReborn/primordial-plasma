@@ -1,5 +1,7 @@
 # GhostForge 项目结构与使用指南
 
+> 🚀 **快速开始**: 查看 [QUICKSTART.md](QUICKSTART.md) 快速配置并运行！
+
 ## 项目概览
 
 GhostForge 是一个 AI 驱动的动态 UI 生成系统，展示了如何结合 Blazor Server、Semantic Kernel、Roslyn 和 WPF 创建创新的解决方案。

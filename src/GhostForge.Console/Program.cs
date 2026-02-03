@@ -19,23 +19,60 @@ var endpoint = builder.Configuration["SemanticKernel:Endpoint"];
 var apiKey = builder.Configuration["SemanticKernel:ApiKey"];
 var modelId = builder.Configuration["SemanticKernel:ModelId"] ?? "gpt-4";
 
-if (!string.IsNullOrEmpty(endpoint) && !string.IsNullOrEmpty(apiKey))
+if (!string.IsNullOrEmpty(apiKey))
 {
-    // 使用 Azure OpenAI 或 OpenAI
-    if (endpoint.Contains("azure", StringComparison.OrdinalIgnoreCase))
+    if (!string.IsNullOrEmpty(endpoint))
     {
-        kernelBuilder.AddAzureOpenAIChatCompletion(modelId, endpoint, apiKey);
+        // 自定义端点（包括 Azure OpenAI、Qwen、DeepSeek 等）
+        if (endpoint.Contains("azure", StringComparison.OrdinalIgnoreCase))
+        {
+            // Azure OpenAI
+            kernelBuilder.AddAzureOpenAIChatCompletion(modelId, endpoint, apiKey);
+            Console.WriteLine($"✅ 已配置 Azure OpenAI: {endpoint}");
+        }
+        else
+        {
+            // 自定义 OpenAI 兼容服务（Qwen、DeepSeek、OneAPI 等）
+            // Semantic Kernel 1.70+ 支持通过自定义 HttpClient 配置端点
+            var httpClient = new HttpClient
+            {
+                BaseAddress = new Uri(endpoint)
+            };
+            
+            // 注意：对于自定义端点，需要确保端点包含完整路径（如 /v1）
+            kernelBuilder.AddOpenAIChatCompletion(
+                modelId: modelId,
+                apiKey: apiKey,
+                httpClient: httpClient
+            );
+            
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"✅ 已配置自定义 LLM 服务:");
+            Console.WriteLine($"   端点: {endpoint}");
+            Console.WriteLine($"   模型: {modelId}");
+            Console.ResetColor();
+        }
     }
     else
     {
+        // OpenAI 官方 API（无自定义端点）
         kernelBuilder.AddOpenAIChatCompletion(modelId, apiKey);
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine($"✅ 已配置 OpenAI 官方 API，模型: {modelId}");
+        Console.ResetColor();
     }
 }
 else
 {
     // 如果未配置，记录警告（演示模式）
-    Console.WriteLine("WARNING: Semantic Kernel 未配置 API 密钥。UIService 将无法正常工作。");
-    Console.WriteLine("请在 User Secrets 或 appsettings.json 中配置 SemanticKernel:Endpoint 和 SemanticKernel:ApiKey");
+    Console.ForegroundColor = ConsoleColor.Yellow;
+    Console.WriteLine("⚠️  WARNING: Semantic Kernel 未配置 API 密钥。UIService 将无法正常工作。");
+    Console.WriteLine("📝 配置方法:");
+    Console.WriteLine("   1. 运行配置脚本: .\\setup-custom-llm.ps1");
+    Console.WriteLine("   2. 或手动运行:");
+    Console.WriteLine("      cd src/GhostForge.Console");
+    Console.WriteLine("      dotnet user-secrets set \"SemanticKernel:ApiKey\" \"YOUR_KEY\"");
+    Console.ResetColor();
 }
 
 var kernel = kernelBuilder.Build();
