@@ -4,6 +4,7 @@
 @using Microsoft.Extensions.Logging
 @inject UIService UIService
 @inject ILogger<UIGeneration> Logger
+@inject IJSRuntime JSRuntime
 
 <PageTitle>UI 生成 - GhostForge</PageTitle>
 
@@ -13,47 +14,108 @@
         <p class="subtitle">通过机器之灵将自然语言转化为 XAML</p>
     </div>
 
+    <!-- 通知系统 -->
+    @if (notifications.Any())
+    {
+        <div class="notification-container">
+            @foreach (var notification in notifications)
+            {
+                <div class="notification notification-@notification.Type.ToString().ToLower()" @key="notification.Id">
+                    <div class="notification-content">
+                        <span class="notification-icon">@GetNotificationIcon(notification.Type)</span>
+                        <span class="notification-message">@notification.Message</span>
+                    </div>
+                    <button class="notification-close" @onclick="() => DismissNotification(notification.Id)">×</button>
+                </div>
+            }
+        </div>
+    }
+
     <div class="generation-panel">
-        <div class="input-section">
-            <label class="mechanicus-label">请描述您需要的界面：</label>
-            <textarea @bind="userDescription" 
-                      class="mechanicus-textarea" 
-                      rows="5" 
-                      placeholder="例如：创建一个数据统计面板，包含三个指标卡片：CPU使用率、内存占用、网络流量"></textarea>
-            
-            <button @onclick="GenerateXamlAsync" 
-                    class="mechanicus-button" 
-                    disabled="@isGenerating">
-                @if (isGenerating)
-                {
-                    <span>⚙ 锻造中...</span>
-                }
-                else
-                {
-                    <span>⚙ 生成 XAML ⚙</span>
-                }
-            </button>
+        <!-- 模型选择和配置 -->
+        <div class="model-selector-section">
+            <label class="mechanicus-label" for="model-select">🤖 选择模型：</label>
+            <select id="model-select" 
+                    class="model-dropdown" 
+                    @bind="selectedModel"
+                    @bind:after="OnModelSelectionChanged">
+                <option value="deepseek-r1">🧠 DeepSeek-R1 - 推理模型 (逻辑性强)</option>
+                <option value="Qwen2.5-72B">🔮 Qwen2.5-72B - 通用模型 (创意性强)</option>
+                <option value="gemini-2.0-flash">✨ Gemini 2.0 Flash - Google AI (快速高效)</option>
+            </select>
+            <div class="model-info">
+                @GetModelDescription(selectedModel)
+            </div>
         </div>
 
+        <!-- 预设提示词 -->
+        <div class="prompts-section">
+            <label class="mechanicus-label">💡 快速开始 - 选择模板：</label>
+            <div class="prompt-templates">
+                @foreach (var template in promptTemplates)
+                {
+                    <button class="prompt-template-btn" @onclick="() => UseTemplate(template.Prompt)">
+                        <span class="template-icon">@template.Icon</span>
+                        <span class="template-name">@template.Name</span>
+                    </button>
+                }
+            </div>
+        </div>
+
+        <!-- 用户输入 -->
+        <div class="input-section">
+            <label class="mechanicus-label">📝 描述您需要的界面：</label>
+            <textarea @bind="userDescription" 
+                      class="mechanicus-textarea" 
+                      rows="6" 
+                      placeholder="例如：创建一个数据统计面板，包含三个指标卡片：CPU使用率、内存占用、网络流量"></textarea>
+            
+            <div class="action-row">
+                <button @onclick="GenerateXamlAsync" 
+                        class="mechanicus-button" 
+                        disabled="@isGenerating">
+                    @if (isGenerating)
+                    {
+                        <span class="loading-spinner">⚙</span>
+                        <span>锻造中...</span>
+                    }
+                    else
+                    {
+                        <span>⚙ 生成 XAML ⚙</span>
+                    }
+                </button>
+                @if (!string.IsNullOrEmpty(userDescription))
+                {
+                    <button @onclick="ClearInput" class="mechanicus-button-secondary">
+                        🗑 清空输入
+                    </button>
+                }
+            </div>
+        </div>
+
+        <!-- 生成结果 -->
         @if (!string.IsNullOrEmpty(generatedXaml))
         {
             <div class="result-section">
                 <div class="result-header">
-                    <h3>生成结果</h3>
-                    @if (isValid)
-                    {
-                        <span class="status-success">✓ 验证通过</span>
-                    }
-                    else
-                    {
-                        <span class="status-error">✗ 验证失败</span>
-                    }
+                    <h3>⚡ 生成结果</h3>
+                    <div class="result-status">
+                        @if (isValid)
+                        {
+                            <span class="status-success">✓ 验证通过</span>
+                        }
+                        else
+                        {
+                            <span class="status-error">✗ 验证失败</span>
+                        }
+                        <span class="code-stats">@generatedXaml.Length 字符</span>
+                    </div>
                 </div>
 
                 @if (!string.IsNullOrEmpty(validationError))
                 {
                     <div class="alert-error">
-                        <strong>错误:</strong> @validationError
+                        <strong>⚠ 错误:</strong> @validationError
                     </div>
                 }
 
@@ -65,17 +127,13 @@
                     <button @onclick="CopyToClipboard" class="mechanicus-button-secondary">
                         📋 复制代码
                     </button>
+                    <button @onclick="DownloadXaml" class="mechanicus-button-secondary">
+                        💾 下载 XAML
+                    </button>
                     <button @onclick="ClearResult" class="mechanicus-button-secondary">
                         🗑 清除结果
                     </button>
                 </div>
-            </div>
-        }
-
-        @if (!string.IsNullOrEmpty(statusMessage))
-        {
-            <div class="status-message">
-                @statusMessage
             </div>
         }
     </div>
@@ -87,7 +145,54 @@
     private bool isGenerating = false;
     private bool isValid = false;
     private string? validationError = null;
-    private string statusMessage = "";
+    private string selectedModel = "deepseek-r1";
+    
+    // 通知系统
+    private List<Notification> notifications = new();
+    private int notificationIdCounter = 0;
+
+    // 预设提示词模板
+    private List<PromptTemplate> promptTemplates = new()
+    {
+        new PromptTemplate { Icon = "📝", Name = "登录表单", Prompt = "创建一个登录表单，包含用户名输入框、密码输入框、记住我复选框和登录按钮" },
+        new PromptTemplate { Icon = "📊", Name = "数据面板", Prompt = "创建一个数据统计面板，包含三个指标卡片：CPU使用率、内存占用、网络流量，每个卡片显示标题、数值和进度条" },
+        new PromptTemplate { Icon = "⚙", Name = "设置页面", Prompt = "创建一个设置界面，包含主题选择、语言选择、通知开关和保存按钮" },
+        new PromptTemplate { Icon = "👤", Name = "用户资料", Prompt = "创建一个用户资料编辑界面，包含头像、姓名、邮箱、电话、个人简介输入框和保存按钮" },
+        new PromptTemplate { Icon = "📁", Name = "文件列表", Prompt = "创建一个文件浏览器界面，包含文件列表、搜索框、排序选项和操作按钮" },
+        new PromptTemplate { Icon = "💬", Name = "聊天界面", Prompt = "创建一个聊天界面，包含消息列表、输入框和发送按钮，使用机械教风格" }
+    };
+
+    protected override void OnInitialized()
+    {
+        ShowNotification("欢迎使用 GhostForge UI 生成器", NotificationType.Info);
+    }
+
+    private void OnModelSelectionChanged()
+    {
+        ShowNotification($"已切换到模型: {GetModelDisplayName(selectedModel)}", NotificationType.Info);
+    }
+
+    private string GetModelDisplayName(string model) => model switch
+    {
+        "deepseek-r1" => "DeepSeek-R1",
+        "Qwen2.5-72B" => "Qwen2.5-72B",
+        "gemini-2.0-flash" => "Gemini 2.0 Flash",
+        _ => model
+    };
+
+    private string GetModelDescription(string model) => model switch
+    {
+        "deepseek-r1" => "DeepSeek-R1 专注于推理任务，适合生成逻辑复杂的界面结构",
+        "Qwen2.5-72B" => "Qwen2.5-72B 是通用模型，擅长创意设计和灵活布局",
+        "gemini-2.0-flash" => "Gemini 2.0 Flash 是 Google 最新的轻量级模型，快速且高效",
+        _ => "请选择一个模型"
+    };
+
+    private void UseTemplate(string prompt)
+    {
+        userDescription = prompt;
+        ShowNotification("已应用模板", NotificationType.Success);
+    }
 
     private async Task GenerateXamlAsync()
     {
@@ -95,20 +200,23 @@
         
         if (string.IsNullOrWhiteSpace(userDescription))
         {
-            statusMessage = "请输入界面描述";
+            ShowNotification("请输入界面描述或选择模板", NotificationType.Warning);
             Logger.LogWarning("⚠️ [UI] 用户输入为空");
             return;
         }
 
         Logger.LogInformation("📝 [UI] 用户描述: {Description}", userDescription);
+        Logger.LogInformation("🤖 [UI] 使用模型: {Model}", selectedModel);
         
         isGenerating = true;
-        statusMessage = "正在调用机器之灵...";
         generatedXaml = "";
         validationError = null;
+        ShowNotification("正在调用机器之灵...", NotificationType.Info);
 
         try
         {
+            // TODO: 根据选择的模型调用不同的服务
+            // 目前使用默认的 UIService
             Logger.LogInformation("🔄 [UI] 开始调用 UIService.GenerateXamlAsync...");
             var result = await UIService.GenerateXamlAsync(userDescription);
             Logger.LogInformation("✅ [UI] UIService 调用完成");
@@ -121,18 +229,18 @@
             
             if (isValid)
             {
-                statusMessage = "✓ XAML 生成成功！";
+                ShowNotification($"✓ XAML 生成成功！({generatedXaml.Length} 字符)", NotificationType.Success);
                 Logger.LogInformation("🎉 [UI] XAML 验证通过");
             }
             else
             {
-                statusMessage = "⚠ XAML 已生成但验证失败";
+                ShowNotification("⚠ XAML 已生成但验证失败", NotificationType.Warning);
                 Logger.LogWarning("⚠️ [UI] XAML 验证失败: {Error}", validationError);
             }
         }
         catch (Exception ex)
         {
-            statusMessage = $"生成失败: {ex.Message}";
+            ShowNotification($"生成失败: {ex.Message}", NotificationType.Error);
             Logger.LogError(ex, "❌ [UI] 生成过程出现异常");
             isValid = false;
         }
@@ -145,15 +253,105 @@
 
     private async Task CopyToClipboard()
     {
-        // Note: Clipboard API requires JavaScript interop in Blazor
-        statusMessage = "代码已复制（需要实现 JS Interop）";
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", generatedXaml);
+            ShowNotification("✓ 代码已复制到剪贴板", NotificationType.Success);
+        }
+        catch
+        {
+            ShowNotification("复制失败，请手动复制", NotificationType.Warning);
+        }
+    }
+
+    private async Task DownloadXaml()
+    {
+        try
+        {
+            var fileName = $"GhostForge_{DateTime.Now:yyyyMMdd_HHmmss}.xaml";
+            var bytes = System.Text.Encoding.UTF8.GetBytes(generatedXaml);
+            var base64 = Convert.ToBase64String(bytes);
+            await JSRuntime.InvokeVoidAsync("downloadFile", fileName, base64);
+            ShowNotification($"✓ 已下载: {fileName}", NotificationType.Success);
+        }
+        catch
+        {
+            ShowNotification("下载失败", NotificationType.Error);
+        }
+    }
+
+    private void ClearInput()
+    {
+        userDescription = "";
+        ShowNotification("已清空输入", NotificationType.Info);
     }
 
     private void ClearResult()
     {
         generatedXaml = "";
         validationError = null;
-        statusMessage = "";
         isValid = false;
+        ShowNotification("已清除结果", NotificationType.Info);
+    }
+
+    // 通知系统方法
+    private void ShowNotification(string message, NotificationType type, int durationMs = 5000)
+    {
+        var notification = new Notification
+        {
+            Id = ++notificationIdCounter,
+            Message = message,
+            Type = type,
+            Timestamp = DateTime.Now
+        };
+
+        notifications.Add(notification);
+        StateHasChanged();
+
+        // 自动关闭
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(durationMs);
+            DismissNotification(notification.Id);
+        });
+    }
+
+    private void DismissNotification(int id)
+    {
+        notifications.RemoveAll(n => n.Id == id);
+        InvokeAsync(StateHasChanged);
+    }
+
+    private string GetNotificationIcon(NotificationType type) => type switch
+    {
+        NotificationType.Success => "✓",
+        NotificationType.Error => "✗",
+        NotificationType.Warning => "⚠",
+        NotificationType.Info => "ℹ",
+        _ => "•"
+    };
+
+    // 数据模型
+    private class PromptTemplate
+    {
+        public string Icon { get; set; } = "";
+        public string Name { get; set; } = "";
+        public string Prompt { get; set; } = "";
+    }
+
+    private class Notification
+    {
+        public int Id { get; set; }
+        public string Message { get; set; } = "";
+        public NotificationType Type { get; set; }
+        public DateTime Timestamp { get; set; }
+    }
+
+    private enum NotificationType
+    {
+        Success,
+        Error,
+        Warning,
+        Info
     }
 }

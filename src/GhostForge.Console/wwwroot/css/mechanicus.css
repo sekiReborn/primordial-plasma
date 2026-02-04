@@ -182,3 +182,273 @@ body {
     border-left: 4px solid var(--mechanicus-brass-gold);
     color: var(--mechanicus-parchment);
 }
+
+/* ============================================
+   通知系统样式
+   ============================================ */
+.notification-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    max-width: 400px;
+}
+
+.notification {
+    background: var(--mechanicus-secondary-brown);
+    border: 2px solid;
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    animation: slideInRight 0.3s ease-out;
+}
+
+.notification-success {
+    border-color: #4CAF50;
+}
+
+.notification-error {
+    border-color: #f44336;
+}
+
+.notification-warning {
+    border-color: #ff9800;
+}
+
+.notification-info {
+    border-color: var(--mechanicus-brass-gold);
+}
+
+.notification-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+}
+
+.notification-icon {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.notification-success .notification-icon {
+    color: #4CAF50;
+}
+
+.notification-error .notification-icon {
+    color: #f44336;
+}
+
+.notification-warning .notification-icon {
+    color: #ff9800;
+}
+
+.notification-info .notification-icon {
+    color: var(--mechanicus-brass-gold);
+}
+
+.notification-message {
+    color: var(--mechanicus-parchment);
+    font-size: 0.95rem;
+}
+
+.notification-close {
+    background: transparent;
+    border: none;
+    color: var(--mechanicus-muted-parchment);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+}
+
+.notification-close:hover {
+    color: var(--mechanicus-brass-gold);
+}
+
+/* ============================================
+   模型选择器样式 - 下拉菜单版本
+   ============================================ */
+.model-selector-section {
+    margin-bottom: 25px;
+    padding: 20px;
+    background: var(--mechanicus-dark-brown);
+    border: 2px solid var(--mechanicus-dark-bronze);
+}
+
+.model-dropdown {
+    width: 100%;
+    padding: 15px;
+    margin-top: 10px;
+    background: var(--mechanicus-secondary-brown);
+    color: var(--mechanicus-parchment);
+    border: 2px solid var(--mechanicus-dark-bronze);
+    font-family: 'Courier New', monospace;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.model-dropdown:hover {
+    border-color: var(--mechanicus-brass-gold);
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+}
+
+.model-dropdown:focus {
+    outline: none;
+    border-color: var(--mechanicus-brass-gold);
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.5);
+}
+
+.model-dropdown option {
+    background: var(--mechanicus-secondary-brown);
+    color: var(--mechanicus-parchment);
+    padding: 10px;
+}
+
+.model-info {
+    margin-top: 12px;
+    padding: 12px;
+    background: rgba(212, 175, 55, 0.05);
+    border-left: 3px solid var(--mechanicus-brass-gold);
+    color: var(--mechanicus-muted-parchment);
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+/* ============================================
+   预设提示词模板样式
+   ============================================ */
+.prompts-section {
+    margin-bottom: 25px;
+    padding: 20px;
+    background: var(--mechanicus-dark-brown);
+    border: 2px solid var(--mechanicus-dark-bronze);
+}
+
+.prompt-templates {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-top: 15px;
+}
+
+.prompt-template-btn {
+    background: var(--mechanicus-secondary-brown);
+    border: 2px solid var(--mechanicus-dark-bronze);
+    padding: 15px 10px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s;
+    color: var(--mechanicus-parchment);
+}
+
+.prompt-template-btn:hover {
+    border-color: var(--mechanicus-brass-gold);
+    background: rgba(212, 175, 55, 0.1);
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+}
+
+.template-icon {
+    font-size: 2rem;
+}
+
+.template-name {
+    font-size: 0.9rem;
+    font-weight: bold;
+    text-align: center;
+}
+
+/* ============================================
+   增强的操作区域
+   ============================================ */
+.action-row {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    margin-top: 15px;
+}
+
+.loading-spinner {
+    display: inline-block;
+    animation: spin 1s linear infinite;
+}
+
+.code-stats {
+    color: var(--mechanicus-muted-parchment);
+    font-size: 0.85rem;
+    margin-left: 15px;
+}
+
+.result-status {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* ============================================
+   动画效果
+   ============================================ */
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ============================================
+   响应式设计
+   ============================================ */
+@media (max-width: 768px) {
+    .model-options {
+        grid-template-columns: 1fr;
+    }
+
+    .prompt-templates {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .notification-container {
+        right: 10px;
+        left: 10px;
+        max-width: none;
+    }
+
+    .action-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .mechanicus-button,
+    .mechanicus-button-secondary {
+        width: 100%;
+        margin-right: 0;
+    }
+}

@@ -1,6 +1,8 @@
 # GhostForge 项目结构与使用指南
 
-> 🚀 **快速开始**: 查看 [QUICKSTART.md](QUICKSTART.md) 快速配置并运行！
+> 🚀 **快速开始**: 查看 [QUICKSTART.md](QUICKSTART.md) 快速配置并运行！  
+> 🐛 **遇到问题?** 查看 [BUG_FIX_REPORT.md](BUG_FIX_REPORT.md) 获取完整的故障排查指南  
+> 🔧 **调试指南**: [DEBUGGING_GUIDE.md](DEBUGGING_GUIDE.md) | [DEBUG_STEPS.md](DEBUG_STEPS.md)
 
 ## 项目概览
 
